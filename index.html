@@ -6,6 +6,14 @@
   <title>Unity Web Player | DotaMania</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
+
+  <!-- Стилі для приховування стандартного поля вибору файлу -->
+  <style>
+    /* Ховаємо дефолтне поле Choose File */
+    #fileInput {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 <div id="unity-container" class="unity-desktop">
@@ -16,7 +24,7 @@
       <div id="unity-progress-bar-full"></div>
     </div>
   </div>
-  <div id="unity-warning"> </div>
+  <div id="unity-warning"></div>
   <div id="unity-footer">
     <div id="unity-logo-title-footer"></div>
     <div id="unity-fullscreen-button"></div>
@@ -24,27 +32,35 @@
   </div>
 </div>
 
-<!-- Додано HTML Input для вибору текстового файлу -->
+<!-- Приховане поле для вибору файлу -->
 <div id="file-upload">
   <input type="file" id="fileInput" accept=".txt" onchange="onFileSelected(event)">
 </div>
 
+<!-- (Опційно) Кнопка, яку можна показувати на сторінці, якщо потрібно -->
+<!-- Але оскільки ви вже викликаєте triggerFileSelection() з Unity, цю кнопку можна видалити або залишити для тесту -->
+<!--
+<button onclick="triggerFileSelection()">Вибрати файл (Тест)</button>
+-->
+
 <script>
-  // Функція для обробки вибору файлу через HTML Input
+  // Функція, що викликається при зміні (виборі) файлу в <input type="file">
   function onFileSelected(event) {
     var file = event.target.files[0];
     if (!file) return;
+
     var reader = new FileReader();
     reader.onload = function(e) {
       var fileContent = e.target.result;
-      // Передача даних у Unity через GameObject "FileReceiver" та метод "ReceiveFileContent"
+      // Передаємо дані у Unity. Ім'я GameObject: "FileReceiver", метод: "ReceiveFileContent"
       SendMessage('FileReceiver', 'ReceiveFileContent', fileContent);
     };
     reader.readAsText(file);
   }
 
-  // Функція для програмного виклику вікна вибору файлу
+  // Функція для програмного виклику вибору файлу з Unity (через Application.ExternalCall)
   function triggerFileSelection() {
+    // Емуляція кліку по прихованому input
     document.getElementById('fileInput').click();
   }
 
@@ -116,4 +132,3 @@
 </script>
 </body>
 </html>
-
