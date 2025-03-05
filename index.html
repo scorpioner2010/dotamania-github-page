@@ -37,30 +37,30 @@
   <input type="file" id="fileInput" accept=".txt" onchange="onFileSelected(event)">
 </div>
 
-<!-- (Опційно) Кнопка, яку можна показувати на сторінці, якщо потрібно -->
-<!-- Але оскільки ви вже викликаєте triggerFileSelection() з Unity, цю кнопку можна видалити або залишити для тесту -->
-<!--
-<button onclick="triggerFileSelection()">Вибрати файл (Тест)</button>
--->
-
 <script>
-  // Функція, що викликається при зміні (виборі) файлу в <input type="file">
+  // Викликається при виборі файлу
   function onFileSelected(event) {
     var file = event.target.files[0];
     if (!file) return;
+    console.log("Файл обрано: " + file.name);
 
     var reader = new FileReader();
     reader.onload = function(e) {
       var fileContent = e.target.result;
-      // Передаємо дані у Unity. Ім'я GameObject: "FileReceiver", метод: "ReceiveFileContent"
-      SendMessage('FileReceiver', 'ReceiveFileContent', fileContent);
+      console.log("Зчитано вміст файлу, виклик myUnityInstance.SendMessage");
+
+      // Викликаємо метод ReceiveFileContent через екземпляр Unity
+      if (window.myUnityInstance) {
+        window.myUnityInstance.SendMessage("FileReceiver", "ReceiveFileContent", fileContent);
+      } else {
+        console.error("myUnityInstance не визначено або Unity ще не завантажився");
+      }
     };
     reader.readAsText(file);
   }
 
-  // Функція для програмного виклику вибору файлу з Unity (через Application.ExternalCall)
+  // Відкриваємо вікно вибору файлу з Unity (Application.ExternalCall/ExternalEval)
   function triggerFileSelection() {
-    // Емуляція кліку по прихованому input
     document.getElementById('fileInput').click();
   }
 
@@ -74,9 +74,9 @@
     var div = document.createElement('div');
     div.innerHTML = msg;
     warningBanner.appendChild(div);
-    if (type == 'error') div.style = 'background: red; padding: 10px;';
+    if (type === 'error') div.style = 'background: red; padding: 10px;';
     else {
-      if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+      if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
       setTimeout(function() {
         warningBanner.removeChild(div);
         updateBannerVisibility();
@@ -119,6 +119,9 @@
     createUnityInstance(canvas, config, (progress) => {
       document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
     }).then((unityInstance) => {
+      // Зберігаємо екземпляр Unity у глобальну змінну
+      window.myUnityInstance = unityInstance;
+
       document.querySelector("#unity-loading-bar").style.display = "none";
       document.querySelector("#unity-fullscreen-button").onclick = () => {
         unityInstance.SetFullscreen(1);
